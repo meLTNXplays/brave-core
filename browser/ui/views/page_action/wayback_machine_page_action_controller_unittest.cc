@@ -28,6 +28,7 @@
 #include "content/public/test/browser_task_environment.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "ui/actions/actions.h"
+#include "url/gurl.h"
 
 namespace page_actions {
 
