@@ -5,6 +5,7 @@
 
 #include "brave/browser/brave_ads/ads_service_delegate.h"
 
+#include "base/logging.h"
 #include "base/strings/string_util.h"
 #include "base/types/to_address.h"
 #include "brave/browser/brave_ads/application_state/notification_helper/notification_helper.h"
@@ -29,6 +30,7 @@
 #else
 #include "chrome/browser/fullscreen.h"
 #include "chrome/browser/lifetime/browser_shutdown.h"
+#include "chrome/browser/ui/browser_window/public/create_browser_window.h"
 #include "chrome/browser/ui/navigator/browser_navigator.h"
 #include "chrome/browser/ui/navigator/browser_navigator_params.h"
 #endif
@@ -61,6 +63,16 @@ void AdsServiceDelegate::OpenNewTabWithUrl(const GURL& url) {
       base::to_address(profile_), params,
       base::BindOnce([](content::WebContents*) {}));
 #else
+  // TEMPORARY: diagnostic logging to root-cause the Linux CI timeout in
+  // OpenNewTabWithUrlCreatesBrowserWhenNoneExists. Remove before merging.
+  LOG(ERROR) << "[ads-diag] HasShutdownStarted="
+             << browser_shutdown::HasShutdownStarted() << " IsShuttingDown="
+             << (g_browser_process != nullptr &&
+                 g_browser_process->IsShuttingDown())
+             << " CreationStatus="
+             << static_cast<int>(GetBrowserWindowCreationStatusForProfile(
+                    *base::to_address(profile_)));
+
   if (browser_shutdown::HasShutdownStarted()) {
     // The last browser window can close, and `browser_shutdown` can start,
     // before `AdsServiceImpl::Shutdown()` runs for this profile. Bail out
